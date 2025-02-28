@@ -1,5 +1,5 @@
 import {Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn} from 'typeorm';
-import { User } from './User'
+import { User } from '../user/user'
 
 @Entity()
 export class RefreshSession {

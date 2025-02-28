@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken"
 import dotenv from "dotenv"
-import {handleServerError} from "../utils/Errors";
+import { handleServerError } from "../utils/Errors";
 
 dotenv.config();
 
@@ -29,10 +29,11 @@ export class TokenService {
     });
   }
 
-  static checkAccess(req: Request & { user: any }, res: Response, next: NextFunction) {
+  static checkAccess(req: Request, res: Response, next: NextFunction) {
     const authHeader = req.headers.authorization;
 
     const token = authHeader?.split(' ')[1];
+    console.log(token, ' token');
 
     if (!token) {
       return res.status(401).json({ error: 'Unauthorized', message: 'Access token is missing or invalid' });
@@ -43,7 +44,9 @@ export class TokenService {
         handleServerError(error, res, 403)
       }
 
+      req.user = user as TPayload;
+
       next();
     });
   }
-};
+}

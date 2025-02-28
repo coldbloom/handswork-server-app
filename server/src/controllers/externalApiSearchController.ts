@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import https from 'https';
 
 const API_URL = 'https://kladr-api.ru/api.php';
-const API_TOKEN = '3aK4QF422845ZT6RasdB5bDs8nrNKGSh';
+const API_TOKEN = 't3eRTsZ45ksfn7DKD4KE4aQTEtHAG82N';
 
 export const externalApiSearchController = (req: Request, res: Response) => {
   const {
@@ -30,8 +30,6 @@ export const externalApiSearchController = (req: Request, res: Response) => {
   if (contentType === 'building' && streetId) {
     url.searchParams.append('streetId', streetId);
   }
-
-  //console.log('777', url.searchParams);
 
   https.get(url.toString(), (apiRes) => {
     let data = '';
@@ -76,6 +74,7 @@ export const externalApiSearchController = (req: Request, res: Response) => {
     });
 
   }).on('error', (err) => {
+    console.log(err);
     res.status(500).json({ error: 'Ошибка при запросе к API' });
   });
 };

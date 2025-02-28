@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import { DataSource } from "typeorm"
-import { User, RefreshSession } from "./entities";
+import { User, RefreshSession } from "../entities";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
@@ -14,6 +14,7 @@ export const AppDataSource = new DataSource({
   synchronize: true,
   logging: true,
   entities: [User, RefreshSession],
+  //entities: ['src/entities/*.{ts}'],
   subscribers: [],
   migrations: [],
 })
