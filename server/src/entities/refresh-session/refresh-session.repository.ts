@@ -15,6 +15,10 @@ export class RefreshSessionRepository {
     return this.refreshSessionRepository.findOneBy({ refreshToken });
   }
 
+  async findByUser(user: User): Promise<RefreshSession | null> {
+    return this.refreshSessionRepository.findOneBy({ user })
+  }
+
   // Создать и сохранить новую сессию
   async create(
     user: User | { id: number }, // Принимаем объект пользователя или его ID

@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import fs from 'fs';
 import path from 'path';
 import { User, UserRepository } from '../entities';
 
@@ -58,9 +59,17 @@ class UserInfoController {
       // Удаляем старый аватар, если он существует
       if (userData?.avatarPath) {
         // @FIXME возможно нужна будет проверка, если meme-type не всегда png.
-        // Сейчас старый файл png будет заменен на последний загруженный
         const oldAvatarPath = path.join(__dirname, '../..', userData.avatarPath);
-        console.log(oldAvatarPath, 'если oldAvatarPath');
+        // console.log(oldAvatarPath, 'если oldAvatarPath');
+
+        // Удаление старого файла
+        fs.unlink(oldAvatarPath, (err) => {
+          if (err) {
+            console.error('Ошибка при удалении старого файла:', err);
+          } else {
+            console.log('Старый аватар успешно удален:', oldAvatarPath);
+          }
+        });
       }
 
       // @FIXME подумать на счет этого

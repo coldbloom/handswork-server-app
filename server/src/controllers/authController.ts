@@ -244,7 +244,7 @@ class AuthController {
 
   private async handleSessionLogin(userData: User, refreshToken: string, fingerprint: any) {
     // Создание и сохранение новой сессии
-    const existingSession = await this.refreshSessionRepository.findByRefreshToken(refreshToken);
+    const existingSession = await this.refreshSessionRepository.findByUser(userData);
 
     // в случае если по какой-то причине при выходе рефреш токен остался в базе мы должны его удалить перед созданием нового
     if (existingSession) {

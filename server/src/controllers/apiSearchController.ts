@@ -13,12 +13,14 @@ interface QueryParams {
   limit?: number;
   region?: string;
   city?: string;
+  settlement?: string;
   streetId?: string;
 }
 
 interface SuggestionData {
   postal_code?: string;
   settlement_type_full?: string;
+  settlement?: string;
   region?: string;
   city?: string;
   street_fias_id?: string;
@@ -32,6 +34,8 @@ interface SuggestionData {
   block?: string;
   house_type?: string;
   street_with_type?: string;
+  settlement_with_type?: string;
+  city_type_full?: string;
 }
 
 interface Suggestion {
@@ -60,11 +64,31 @@ const formatCityData = (suggestion: Suggestion) => {
   const arrValue = value.split(', ').slice(0, 4)
   const parents = arrValue.slice(1, arrValue.length - 1).join(', '); // Конкатенация всех элементов, кроме первого и последнего
   const [type, name] = arrValue[arrValue.length - 1].split(' ');
+  let city = null;
+  let settlement = null; // если тип населенного пункта не город
+  let cityTypeFull = null;
+  let settlementTypeFull = null;
 
   const region = data.region;
-  const city = data.city;
+  if (type === 'г') {
+    city = data.city;
+    cityTypeFull = data.city_type_full;
+  } else {
+    settlement = name;
+    settlementTypeFull = data.settlement_type_full;
+  }
 
-  return  { id: arrValue[0], type, name, parents, region, city };
+  return  {
+    id: arrValue[0],
+    type,
+    name,
+    parents,
+    region,
+    ...(city && { city: city}),
+    ...(settlement && { settlement: settlement }),
+    ...(cityTypeFull && { cityTypeFull: cityTypeFull }),
+    ...(settlementTypeFull && { settlementTypeFull: settlementTypeFull }),
+  };
 }
 
 const formatStreetData = (suggestion: Suggestion) => {
@@ -74,10 +98,19 @@ const formatStreetData = (suggestion: Suggestion) => {
   const name = data.street;
   const type = data.street_type;
   const region = data.region;
-  const city = data.city;
-  const parents = (data.region_with_type === data.city_with_type)
-    ? (data.region_with_type || '').trim()
-    : `${data.region_with_type || ''}, ${data.city_with_type || ''}`.trim();
+  const city = data.city || data.settlement;
+  let parents = null;
+
+  // если ищем улицу в населенном пункте, а не в городе
+  if (data.settlement_with_type) {
+    parents = data.settlement_with_type;
+  } else {
+    if (data.region_with_type === data.city_with_type) {
+      parents = (data.region_with_type || '').trim();
+    } else {
+      parents = `${data.region_with_type || ''}, ${data.city_with_type || ''}`.trim();
+    }
+  }
 
   return  { id, type, name, parents, region, city };
 }
@@ -113,7 +146,11 @@ const processSuggestions = (suggestions: Suggestion[], location: LocationTypes):
 
     case 'street':
       for (let i = 0; i < suggestions.length; i++) {
-        result.push(formatStreetData(suggestions[i]));
+        const suggestion = suggestions[i];
+        const streetData = formatStreetData(suggestion);
+        if (streetData.type && !['км', 'ш', 'проезд'].includes(streetData.type)) {
+          result.push(formatStreetData(suggestions[i]));
+        }
       }
       return result;
 
@@ -135,6 +172,7 @@ export const apiSearchController = async (req: Request, res: Response) => {
     limit = 10,
     region,
     city,
+    settlement,
     streetId
   } = req.query as QueryParams;
 
@@ -169,6 +207,7 @@ export const apiSearchController = async (req: Request, res: Response) => {
         {
           region: region,
           ...(city && { city: city }), // Include 'city' only if it's provided
+          ...(settlement && { settlement: settlement }),
         },
       ];
       break;
