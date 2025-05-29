@@ -1,11 +1,11 @@
 import bcrypt from "bcrypt";
 import { Request, Response } from "express";
-import { handleServerError } from '../utils/Errors'
-import { User, UserRepository, RefreshSessionRepository } from '../entities'
+import { handleServerError } from '../utils/Errors';
+import { User, UserRepository, RefreshSessionRepository } from '../entities';
 import { TokenService } from "../services/Token";
-import { COOKIE_SETTINGS, ACCESS_TOKEN_EXPIRATION } from  "../constants"
+import { COOKIE_SETTINGS, ACCESS_TOKEN_EXPIRATION } from  "../constants";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import dotenv from "dotenv"
+import dotenv from "dotenv";
 import axios from "axios";
 dotenv.config();
 
