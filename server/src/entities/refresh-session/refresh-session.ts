@@ -10,9 +10,9 @@ export class RefreshSession {
   @JoinColumn() // @JoinColumn декоратор, который указывает, что эта сторона связи будет владеть связью.
   user: User
 
-  @Column()
+  @Column({ name: 'refresh_token' })
   refreshToken: string;
 
-  @Column()
+  @Column({ name: 'finger_print' })
   fingerPrint: string;
 }

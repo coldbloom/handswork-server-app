@@ -16,7 +16,7 @@ const PORT = process.env.PORT;
 // const CLIENT_URL = process.env.CLIENT_URL;
 
 // Разрешённые адреса
-const allowedOrigins = [process.env.CLIENT_URL, 'http://localhost:3031'];
+const allowedOrigins = [process.env.CLIENT_URL, 'http://localhost:3031', 'http://localhost:3006', ];
 
 const app = express();
 

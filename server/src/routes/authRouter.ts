@@ -9,5 +9,6 @@ router.post("/sign-in", (req, res) => auth.signIn(req, res));
 router.post("/refresh", (req, res) => auth.refresh(req, res));
 router.post("/logout", (req, res) => auth.logout(req, res));
 router.post("/gmail-login", (req, res) => auth.gmailLogin(req, res));
+router.post("/is-auth-test", (req, res) => auth.isAuthTest(req, res));
 
 export default router;

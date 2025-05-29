@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, OneToMany } from "typeorm";
+import { Trip } from '../trip/trip';
 
 @Entity()
 export class User {
@@ -11,7 +12,7 @@ export class User {
   @Column({ nullable: true })
   password: string; // Это поле будет использоваться только для пользователей, которые регистрируются через логин и пароль.
 
-  @Column({ nullable: true })
+  @Column({ name: 'google_id', nullable: true })
   googleId: string; // Это поле будет использоваться для пользователей, которые аутентифицируются через Google.
 
   @Column()
@@ -23,12 +24,15 @@ export class User {
   @Column({ nullable: true })
   phone: string;
 
-  @Column({ nullable: true })
+  @Column({ name: 'birth_date', nullable: true })
   birthDate: string;
 
-  @Column({ nullable: true })
+  @Column({ name: 'avatar_path', nullable: true })
   avatarPath: string;
 
-  @CreateDateColumn({ type: 'date' }) // Указываем тип 'date'
+  @CreateDateColumn({ name: 'created_date ', type: 'date' }) // Указываем тип 'date'
   createdDate: Date; // Используем тип Date для хранения даты
+
+  @OneToMany(() => Trip, trip => trip.user) // Указываем, что у User может быть много Trip
+  trips?: Trip[]; // Массив поездок
 }

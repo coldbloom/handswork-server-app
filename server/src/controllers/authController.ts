@@ -4,7 +4,7 @@ import { handleServerError } from '../utils/Errors'
 import { User, UserRepository, RefreshSessionRepository } from '../entities'
 import { TokenService } from "../services/Token";
 import { COOKIE_SETTINGS, ACCESS_TOKEN_EXPIRATION } from  "../constants"
-import jwt, {JwtPayload} from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import dotenv from "dotenv"
 import axios from "axios";
 dotenv.config();
@@ -96,6 +96,7 @@ class AuthController {
   };
 
   async gmailLogin(req: Request, res: Response) {
+    console.log('gmailLogin start');
     const { fingerprint } = req;
     const { token } = req.body; // Получаем токен из запроса
 
@@ -153,7 +154,7 @@ class AuthController {
     console.log(currentRefreshToken, ' currentRefreshToken');
 
     if (!currentRefreshToken) {
-      return res.status(400).send('No refresh token provided');
+      return res.status(400).json({ error: 'No refresh token provided' });
     }
 
     try {
@@ -162,18 +163,19 @@ class AuthController {
 
       if (!fingerprint || !fingerprint.hash) {
         console.error(' refresh ошибка 0');
-        return res.status(401).send('Отсутствует fingerprint');
+        return res.status(401).json({ error: 'Отсутствует fingerprint' });
       }
 
       if (!refreshFromDB) {
         console.error(' refresh ошибка 1');
-        return res.status(401).send('Пользователь не авторизован');
+        return res.status(401).json({ error: 'Пользователь не авторизован' });
       }
 
       // на случай если угнали токены при рефреше сравниваем fingerprint из базы и fingerprint c запроса
-      if (refreshFromDB?.fingerPrint !== fingerprint?.hash) {
-        console.error(' refresh ошибка 2')
-        return res.status(401).send('Пользователь не авторизован');
+      if (refreshFromDB?.fingerPrint !== fingerprint.hash) {
+        console.error('refresh ошибка 2')
+        console.log(fingerprint.hash);
+        return res.status(401).json({ error: 'Пользователь не авторизован, замечена подозрительная активность' });
       }
 
       // Удаляем текущую сессию перед созданием новой
@@ -191,13 +193,19 @@ class AuthController {
       // Создание новой сессии и сохранение в базе данных
       const newRefreshSession = await this.refreshSessionRepository.create({ id }, newRefreshToken, fingerprint.hash)
       if (!newRefreshSession) {
-        return res.status(500).send('Ошибка создания рефреш сессии');
+        return res.status(500).json({ error: 'Ошибка создания рефреш сессии' });
       }
 
       // Установка нового refresh токена в куки
       res.cookie("refreshToken", newRefreshToken, COOKIE_SETTINGS.REFRESH_TOKEN);
+
+      const userData = await this.userRepository.findByLogin(login);
       // Возвращаем новый access токен и время его истечения
-      return res.status(200).json({ accessToken: newAccessToken, accessTokenExpiration: ACCESS_TOKEN_EXPIRATION });
+      return res.status(200).json({
+        accessToken: newAccessToken,
+        accessTokenExpiration: ACCESS_TOKEN_EXPIRATION,
+        userData,
+      });
     } catch (error) {
       handleServerError(error as Error, res);
     }
@@ -226,6 +234,21 @@ class AuthController {
       handleServerError(error as Error, res);
     }
   };
+
+  //@FIXME выпилить в будущей реализации
+  async isAuthTest(req: Request, res: Response) {
+    const { fingerprint } = req;
+    const currentRefreshToken = req.cookies.refreshToken;
+    console.log(currentRefreshToken, ' currentRefreshToken');
+    console.log(fingerprint, ' fingerprint');
+
+    if (!currentRefreshToken) {
+      console.log('No refresh token provided');
+      return res.status(400).send('No refresh token provided');
+    }
+
+    return res.status(200).json('user authorized');
+  }
 
   private async authenticateUser(login: string, password: string) {
     const userData = await this.userRepository.findByLogin(login);
